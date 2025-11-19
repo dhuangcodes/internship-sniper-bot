@@ -18,7 +18,7 @@ KEYWORDS = [
     "Summit",
     "Insight",
     "Explore",
-    "2026" # Catch early 2026 posts
+    "2026", "Summit", "Insight", "Discovery", "Exploratory", "Fellowship", "Leadership", "Conference", "Preview", # Catch early 2026 posts
 ]
 
 # File to store jobs we've already seen so we don't get spammed
