@@ -16,13 +16,32 @@ TARGET_URLS = [
 ]
 
 KEYWORDS = [
-    "Freshman", "First Year", "1st Year", "Sophomore", 
-    "Discovery", "Summit", "Insight", "Explore", "Fellowship",
-    "Quantitative", "Trader", "Analyst", "Product", "Data", "Finance", "Business", "Strategy",
-    "2026", "Goldman", "Sachs", "Morgan", "Stanley", "JPMorgan", "Chase", 
-    "Bank of America", "Citi", "Citigroup", "Wells Fargo", "Barclays","Deloitte", "PwC", "KPMG", "EY", "Ernst", 
-    "McKinsey", "Bain", "BCG", "Google", "Microsoft", "Meta", "Facebook", "Uber","BlackRock", "Blackstone", "Citadel", "Two Sigma", "Jane Street", 
-    "DE Shaw", "Hudson River Trading", "Point72",
+    # Target Audience
+    "Freshman", "First Year", "1st Year", "Sophomore", "Undergraduate", "2026",
+    
+    # Program Types
+    "Discovery", "Summit", "Insight", "Explore", "Fellowship", 
+    "Conference", "Launch", "Step", "Start", "Propel", "Externship",
+    
+    # Roles & Skills
+    "Quantitative", "Trader", "Analyst", "Product", "Data", "Science", 
+    "Learning", "Finance", "Business", "Strategy", "Wealth", "Asset", 
+    "Investment", "Risk", "Engineer", "Consulting",
+    
+    # Banks & Finance
+    "Goldman", "Sachs", "Morgan", "Stanley", "JPMorgan", "Chase", 
+    "Bank of America", "Citi", "Citigroup", "Wells Fargo", "Barclays", 
+    "BlackRock", "Blackstone", "Capital One", "American Express",
+    
+    # Quant & HFT
+    "Citadel", "Two Sigma", "Jane Street", "DE Shaw", "Hudson River Trading", "Point72", 
+    "Susquehanna", "SIG", "AQR", "Bridgewater",
+    
+    # Consulting & Big 4
+    "Deloitte", "PwC", "KPMG", "EY", "Ernst", "McKinsey", "Bain", "BCG",
+    
+    # Big Tech (Freshman Friendly)
+    "Google", "Microsoft", "Meta", "Facebook", "Uber", "Nvidia", "Apple"
 ]
 
 # Words that mean "Don't show me this"
