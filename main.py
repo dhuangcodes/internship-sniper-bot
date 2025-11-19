@@ -9,7 +9,10 @@ from datetime import datetime
 TARGET_URLS = [
     "https://raw.githubusercontent.com/SimplifyJobs/Summer2026-Internships/dev/README.md",
     "https://raw.githubusercontent.com/codicate/underclassmen-internships/main/README.md",
-    "https://raw.githubusercontent.com/northwesternfintech/2026QuantInternships/main/README.md"
+    "https://raw.githubusercontent.com/northwesternfintech/2026QuantInternships/main/README.md",
+    "https://raw.githubusercontent.com/jobright-ai/2025-Account-Internship/master/README.md",
+    "https://raw.githubusercontent.com/jobright-ai/2025-Product-Management-Internship/master/README.md",
+    "https://raw.githubusercontent.com/jobright-ai/2025-Consultant-Internship/master/README.md"
 ]
 
 KEYWORDS = [
