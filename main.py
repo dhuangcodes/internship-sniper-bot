@@ -19,6 +19,11 @@ KEYWORDS = [
     "2026"
 ]
 
+# Words that mean "Don't show me this"
+BAD_KEYWORDS = [
+    "Closed", "🔒", "❌", "No longer accepting"
+]
+
 EMAIL_SENDER = os.environ.get("EMAIL_SENDER")
 EMAIL_PASSWORD = os.environ.get("EMAIL_PASSWORD")
 EMAIL_RECEIVER = os.environ.get("EMAIL_RECEIVER")
@@ -37,10 +42,16 @@ def parse_and_filter(raw_text, keywords):
     for line in lines:
         if "|" in line and "---" not in line:
             line_lower = line.lower()
+            
+            # 1. Check for GOOD keywords
             if any(k.lower() in line_lower for k in keywords):
-                # Clean up the line to make it readable
-                clean_line = line.replace("|", " ").strip()
-                matches.append(clean_line)
+                
+                # 2. Check for BAD keywords (Filter out closed jobs)
+                if not any(b.lower() in line_lower for b in BAD_KEYWORDS):
+                    
+                    # Clean up the line
+                    clean_line = line.replace("|", " ").strip()
+                    matches.append(clean_line)
     return matches
 
 def load_history():
@@ -63,19 +74,18 @@ def send_email_alert(new_jobs, nothing_found=False):
         <html>
           <body style="font-family: Arial, sans-serif;">
             <h2>It's {current_day}, but nothing new has dropped.</h2>
-            <p>No new freshman/sophomore internships were found in the tracked repositories today.</p>
+            <p>No new <strong>open</strong> freshman/sophomore internships were found today.</p>
             <p><strong>Recommendation:</strong> Go grind some LeetCode or work on your projects!</p>
             <br>
             <p>- Your Python Bot</p>
           </body>
         </html>
         """
-        msg.set_content(f"It's {current_day}, but nothing new has dropped. Go grind LeetCode!")
+        msg.set_content(f"It's {current_day}, but nothing new has dropped.")
         msg.add_alternative(body, subtype='html')
     else:
-        msg['Subject'] = f"🎯 Sniper Alert: {len(new_jobs)} New Opportunities!"
+        msg['Subject'] = f"🎯 Sniper Alert: {len(new_jobs)} New OPEN Opportunities!"
         
-        # Build the HTML table rows
         rows = ""
         for job in new_jobs:
             rows += f"<tr><td style='padding: 10px; border-bottom: 1px solid #ddd;'>{job}</td></tr>"
@@ -83,7 +93,7 @@ def send_email_alert(new_jobs, nothing_found=False):
         html_content = f"""
         <html>
           <body style="font-family: Arial, sans-serif;">
-            <h2 style="color: #2e6c80;">🚀 Found {len(new_jobs)} New Jobs</h2>
+            <h2 style="color: #2e6c80;">🚀 Found {len(new_jobs)} New OPEN Jobs</h2>
             <table style="border-collapse: collapse; width: 100%; max-width: 800px;">
               <tr style="background-color: #f2f2f2;">
                 <th style="padding: 10px; text-align: left; border-bottom: 2px solid #ddd;">Job Details</th>
@@ -94,7 +104,7 @@ def send_email_alert(new_jobs, nothing_found=False):
           </body>
         </html>
         """
-        msg.set_content("New jobs found. Please view this email in an HTML-compatible client.")
+        msg.set_content("New jobs found.")
         msg.add_alternative(html_content, subtype='html')
 
     context = ssl.create_default_context()
