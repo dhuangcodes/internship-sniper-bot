@@ -4,9 +4,12 @@ import time
 from datetime import datetime
 
 # --- CONFIGURATION ---
-# The RAW URL of the markdown file we want to scrape.
-# (Using the PittCSC Summer 2025 list as a test bed, since 2026 is just starting)
-TARGET_URL = "https://raw.githubusercontent.com/pittcsc/Summer2025-Internships/main/README.md"
+TARGET_URLS = [
+    "https://raw.githubusercontent.com/SimplifyJobs/Summer2026-Internships/dev/README.md",
+    "https://raw.githubusercontent.com/codicate/underclassmen-internships/main/README.md",
+    "https://raw.githubusercontent.com/northwesternfintech/2026QuantInternships/main/README.md",
+    "https://raw.githubusercontent.com/pittcsc/Summer2025-Internships/main/README.md"
+]
 
 # The "Signal" keywords we are hunting for
 KEYWORDS = [
@@ -76,33 +79,30 @@ def update_history(new_jobs):
 def run_sniper():
     print(f"\n--- INTERNSHIP SNIPER STARTED at {datetime.now()} ---")
     
-    # 1. Load History
     seen_jobs = load_history()
-    
-    # 2. Fetch Data
-    raw_text = fetch_raw_data(TARGET_URL)
-    if not raw_text:
-        return
+    all_new_jobs = []
 
-    # 3. Find all relevant jobs (Freshman/Sophomore focus)
-    all_matches = parse_and_filter(raw_text, KEYWORDS)
-    
-    # 4. Filter for ONLY new ones
-    new_discoveries = []
-    for job in all_matches:
-        if job not in seen_jobs:
-            new_discoveries.append(job)
-    
-    # 5. Report Results
-    if new_discoveries:
-        print(f"\n🎯 BOOM! Found {len(new_discoveries)} NEW opportunities:\n")
-        for job in new_discoveries:
-            print(f"   > {job}")
+    # Loop through ALL the URLs
+    for url in TARGET_URLS:
+        print(f"Scanning: {url}...")
+        raw_text = fetch_raw_data(url)
         
-        # Save to history so we don't see them again next time
-        update_history(new_discoveries)
+        if raw_text:
+            matches = parse_and_filter(raw_text, KEYWORDS)
+            for job in matches:
+                if job not in seen_jobs:
+                    all_new_jobs.append(job)
+    
+    if all_new_jobs:
+        print(f"\n🎯 BOOM! Found {len(all_new_jobs)} NEW opportunities.")
+        
+        # 1. Send the email FIRST
+        send_email_alert(all_new_jobs)
+        
+        # 2. Then update history
+        update_history(all_new_jobs)
     else:
-        print(f"\nzzz... No new freshman/early programs found. Scanned {len(all_matches)} existing matches.")
+        print(f"\nzzz... No new freshman/early programs found.")
 
 if __name__ == "__main__":
     run_sniper()
