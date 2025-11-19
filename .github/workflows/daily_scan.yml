@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: write # Crucial: Gives permission to save the history file
 
 jobs:
   run-sniper:
@@ -30,10 +30,11 @@ jobs:
           EMAIL_RECEIVER: ${{ secrets.EMAIL_RECEIVER }}
         run: python main.py
 
+      # This step saves the 'seen_jobs.txt' file back to your repo
       - name: Commit and Push History
         run: |
           git config --global user.name "InternshipBot"
           git config --global user.email "bot@noreply.github.com"
           git add seen_jobs.txt
-          git commit -m "Update seen jobs history" || exit 0
-          git push
+          # Only commit if there are changes
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Update seen jobs history" && git push)
