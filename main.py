@@ -12,116 +12,93 @@ TARGET_URLS = [
     "https://raw.githubusercontent.com/northwesternfintech/2026QuantInternships/main/README.md"
 ]
 
-# KEYWORDS to search for
+# Updated Keywords (Broader to catch more finance roles)
 KEYWORDS = [
-    "Freshman", "First Year", "1st Year", "Early", 
-    "Discovery", "Summit", "Insight", "Explore", "2026",
-    "Quantitative", "Trader", "Analyst", "Product", "Data", "Finance", "Business",
-    "Goldman", "Sachs", "Morgan", "Stanley", "Chase", "Capital One"
+    "Freshman", "First Year", "Sophomore", "Discovery", "Summit", "Insight", "Explore", 
+    "Quantitative", "Trader", "Analyst", "Finance", "Business", "2026"
 ]
 
-# Credentials from GitHub Secrets
 EMAIL_SENDER = os.environ.get("EMAIL_SENDER")
 EMAIL_PASSWORD = os.environ.get("EMAIL_PASSWORD")
 EMAIL_RECEIVER = os.environ.get("EMAIL_RECEIVER")
-
 HISTORY_FILE = "seen_jobs.txt"
 
 def fetch_raw_data(url):
-    """Fetches the raw text from the GitHub repository."""
-    print(f"[*] Connecting to target: {url}...")
     try:
         response = requests.get(url)
-        response.raise_for_status()
-        return response.text
-    except Exception as e:
-        print(f"[!] Error fetching data: {e}")
-        return None
+        if response.status_code == 200: return response.text
+    except: pass
+    return None
 
 def parse_and_filter(raw_text, keywords):
-    """Scans text for keywords."""
     matches = []
     lines = raw_text.split('\n')
-    print(f"[*] Scanning {len(lines)} lines of data...")
-    
     for line in lines:
-        if "|" in line:
+        # Look for lines that are table rows (|) and contain a keyword
+        if "|" in line and "---" not in line:
             line_lower = line.lower()
-            for keyword in keywords:
-                if keyword.lower() in line_lower:
-                    matches.append(line.strip())
-                    break 
+            if any(k.lower() in line_lower for k in keywords):
+                # Clean up the line to make it readable
+                clean_line = line.replace("|", " ").strip()
+                matches.append(clean_line)
     return matches
 
 def load_history():
-    """Loads the list of jobs we have already seen."""
-    if not os.path.exists(HISTORY_FILE):
-        return set()
-    with open(HISTORY_FILE, "r", encoding="utf-8") as f:
-        return set(line.strip() for line in f)
+    if not os.path.exists(HISTORY_FILE): return set()
+    with open(HISTORY_FILE, "r") as f: return set(line.strip() for line in f)
 
 def update_history(new_jobs):
-    """Updates the history file."""
-    with open(HISTORY_FILE, "a", encoding="utf-8") as f:
-        for job in new_jobs:
-            f.write(job + "\n")
+    with open(HISTORY_FILE, "a") as f:
+        for job in new_jobs: f.write(job + "\n")
 
-def send_email_alert(new_jobs):
-    """Sends an email with the list of new jobs."""
-    if not EMAIL_SENDER or not EMAIL_PASSWORD:
-        print("[!] Email credentials not found. Skipping email.")
-        return
-
-    print("[*] Preparing email notification...")
-    subject = f"🎯 Internship Sniper: Found {len(new_jobs)} Opportunities!"
-    
-    # Build the email body
-    body = "The bot found the following new freshman/sophomore programs:\n\n"
-    for job in new_jobs:
-        body += f"- {job}\n"
-    body += "\nGood luck!\n- Your Python Bot"
-
+def send_html_email(new_jobs):
     msg = EmailMessage()
-    msg.set_content(body)
-    msg['Subject'] = subject
+    msg['Subject'] = f"🎯 Sniper Alert: {len(new_jobs)} New Opportunities!"
     msg['From'] = EMAIL_SENDER
     msg['To'] = EMAIL_RECEIVER
 
+    # Create a nice HTML table
+    html_content = f"""
+    <html>
+      <body>
+        <h2>🚀 Found {len(new_jobs)} New Jobs</h2>
+        <table style="border-collapse: collapse; width: 100%;">
+          <tr style="background-color: #f2f2f2;">
+            <th style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd;">Job Details</th>
+          </tr>
+          {''.join([f'<tr><td style="padding: 8px; border-bottom: 1px solid #ddd;">{job}</td></tr>' for job in new_jobs])}
+        </table>
+        <p>Good luck! - Your Python Bot</p>
+      </body>
+    </html>
+    """
+    msg.set_content("New jobs found (view as HTML).")
+    msg.add_alternative(html_content, subtype='html')
+
     context = ssl.create_default_context()
-    try:
-        with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=context) as smtp:
-            smtp.login(EMAIL_SENDER, EMAIL_PASSWORD)
-            smtp.send_message(msg)
-        print("[+] Email sent successfully!")
-    except Exception as e:
-        print(f"[!] Failed to send email: {e}")
+    with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=context) as smtp:
+        smtp.login(EMAIL_SENDER, EMAIL_PASSWORD)
+        smtp.send_message(msg)
 
 def run_sniper():
-    print(f"\n--- INTERNSHIP SNIPER STARTED at {datetime.now()} ---")
-    
+    print("Checking for internships...")
     seen_jobs = load_history()
     all_new_jobs = []
 
-    # Loop through ALL the URLs
     for url in TARGET_URLS:
-        raw_text = fetch_raw_data(url)
-        
-        if raw_text:
-            matches = parse_and_filter(raw_text, KEYWORDS)
+        text = fetch_raw_data(url)
+        if text:
+            matches = parse_and_filter(text, KEYWORDS)
             for job in matches:
                 if job not in seen_jobs:
                     all_new_jobs.append(job)
-    
+
     if all_new_jobs:
-        print(f"\n🎯 BOOM! Found {len(all_new_jobs)} NEW opportunities.")
-        
-        # 1. Send the email FIRST
-        send_email_alert(all_new_jobs)
-        
-        # 2. Then update history
+        print(f"Found {len(all_new_jobs)} new jobs. Sending email...")
+        send_html_email(all_new_jobs)
         update_history(all_new_jobs)
     else:
-        print(f"\nzzz... No new freshman/early programs found.")
+        print("No new jobs found.")
 
 if __name__ == "__main__":
     run_sniper()
