@@ -16,7 +16,10 @@ KEYWORDS = [
     "Freshman", "First Year", "1st Year", "Sophomore", 
     "Discovery", "Summit", "Insight", "Explore", "Fellowship",
     "Quantitative", "Trader", "Analyst", "Product", "Data", "Finance", "Business", "Strategy",
-    "2026"
+    "2026", "Goldman", "Sachs", "Morgan", "Stanley", "JPMorgan", "Chase", 
+    "Bank of America", "Citi", "Citigroup", "Wells Fargo", "Barclays","Deloitte", "PwC", "KPMG", "EY", "Ernst", 
+    "McKinsey", "Bain", "BCG", "Google", "Microsoft", "Meta", "Facebook", "Uber","BlackRock", "Blackstone", "Citadel", "Two Sigma", "Jane Street", 
+    "DE Shaw", "Hudson River Trading", "Point72",
 ]
 
 # Words that mean "Don't show me this"
