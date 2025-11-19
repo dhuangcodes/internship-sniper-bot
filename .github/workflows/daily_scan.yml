@@ -27,7 +27,7 @@ jobs:
         env:
           EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
           EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
-          EMAIL_RECEIVER: ${{ secrets.EMAIL_RECEIVER }}
+          EMAIL_RECEIVER: ${{ vars.EMAIL_RECEIVER }}
         run: python main.py
 
       # This step saves the 'seen_jobs.txt' file back to your repo
