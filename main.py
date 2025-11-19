@@ -12,10 +12,11 @@ TARGET_URLS = [
     "https://raw.githubusercontent.com/northwesternfintech/2026QuantInternships/main/README.md"
 ]
 
-# Updated Keywords (Broader to catch more finance roles)
 KEYWORDS = [
-    "Freshman", "First Year", "Sophomore", "Discovery", "Summit", "Insight", "Explore", 
-    "Quantitative", "Trader", "Analyst", "Finance", "Business", "2026"
+    "Freshman", "First Year", "1st Year", "Sophomore", 
+    "Discovery", "Summit", "Insight", "Explore", "Fellowship",
+    "Quantitative", "Trader", "Analyst", "Product", "Data", "Finance", "Business", "Strategy",
+    "2026"
 ]
 
 EMAIL_SENDER = os.environ.get("EMAIL_SENDER")
@@ -34,7 +35,6 @@ def parse_and_filter(raw_text, keywords):
     matches = []
     lines = raw_text.split('\n')
     for line in lines:
-        # Look for lines that are table rows (|) and contain a keyword
         if "|" in line and "---" not in line:
             line_lower = line.lower()
             if any(k.lower() in line_lower for k in keywords):
@@ -51,34 +51,60 @@ def update_history(new_jobs):
     with open(HISTORY_FILE, "a") as f:
         for job in new_jobs: f.write(job + "\n")
 
-def send_html_email(new_jobs):
+def send_email_alert(new_jobs, nothing_found=False):
     msg = EmailMessage()
-    msg['Subject'] = f"🎯 Sniper Alert: {len(new_jobs)} New Opportunities!"
     msg['From'] = EMAIL_SENDER
     msg['To'] = EMAIL_RECEIVER
 
-    # Create a nice HTML table
-    html_content = f"""
-    <html>
-      <body>
-        <h2>🚀 Found {len(new_jobs)} New Jobs</h2>
-        <table style="border-collapse: collapse; width: 100%;">
-          <tr style="background-color: #f2f2f2;">
-            <th style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd;">Job Details</th>
-          </tr>
-          {''.join([f'<tr><td style="padding: 8px; border-bottom: 1px solid #ddd;">{job}</td></tr>' for job in new_jobs])}
-        </table>
-        <p>Good luck! - Your Python Bot</p>
-      </body>
-    </html>
-    """
-    msg.set_content("New jobs found (view as HTML).")
-    msg.add_alternative(html_content, subtype='html')
+    if nothing_found:
+        current_day = datetime.now().strftime('%A')
+        msg['Subject'] = f"📉 Internship Sniper: Nothing New ({current_day})"
+        body = f"""
+        <html>
+          <body style="font-family: Arial, sans-serif;">
+            <h2>It's {current_day}, but nothing new has dropped.</h2>
+            <p>No new freshman/sophomore internships were found in the tracked repositories today.</p>
+            <p><strong>Recommendation:</strong> Go grind some LeetCode or work on your projects!</p>
+            <br>
+            <p>- Your Python Bot</p>
+          </body>
+        </html>
+        """
+        msg.set_content(f"It's {current_day}, but nothing new has dropped. Go grind LeetCode!")
+        msg.add_alternative(body, subtype='html')
+    else:
+        msg['Subject'] = f"🎯 Sniper Alert: {len(new_jobs)} New Opportunities!"
+        
+        # Build the HTML table rows
+        rows = ""
+        for job in new_jobs:
+            rows += f"<tr><td style='padding: 10px; border-bottom: 1px solid #ddd;'>{job}</td></tr>"
+
+        html_content = f"""
+        <html>
+          <body style="font-family: Arial, sans-serif;">
+            <h2 style="color: #2e6c80;">🚀 Found {len(new_jobs)} New Jobs</h2>
+            <table style="border-collapse: collapse; width: 100%; max-width: 800px;">
+              <tr style="background-color: #f2f2f2;">
+                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #ddd;">Job Details</th>
+              </tr>
+              {rows}
+            </table>
+            <p style="margin-top: 20px;">Good luck! - Your Python Bot</p>
+          </body>
+        </html>
+        """
+        msg.set_content("New jobs found. Please view this email in an HTML-compatible client.")
+        msg.add_alternative(html_content, subtype='html')
 
     context = ssl.create_default_context()
-    with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=context) as smtp:
-        smtp.login(EMAIL_SENDER, EMAIL_PASSWORD)
-        smtp.send_message(msg)
+    try:
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=context) as smtp:
+            smtp.login(EMAIL_SENDER, EMAIL_PASSWORD)
+            smtp.send_message(msg)
+        print("[+] Email sent successfully!")
+    except Exception as e:
+        print(f"[!] Failed to send email: {e}")
 
 def run_sniper():
     print("Checking for internships...")
@@ -95,10 +121,11 @@ def run_sniper():
 
     if all_new_jobs:
         print(f"Found {len(all_new_jobs)} new jobs. Sending email...")
-        send_html_email(all_new_jobs)
+        send_email_alert(all_new_jobs)
         update_history(all_new_jobs)
     else:
-        print("No new jobs found.")
+        print("No new jobs found. Sending 'Grind LeetCode' email...")
+        send_email_alert([], nothing_found=True)
 
 if __name__ == "__main__":
     run_sniper()
